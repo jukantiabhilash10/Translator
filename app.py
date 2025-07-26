@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, jsonify, send_file, make_response
+from flask import Flask, render_template, request, jsonify, send_file, make_response, session
 import os
+import uuid
 from deep_translator import GoogleTranslator
 from gtts import gTTS
 from PyPDF2 import PdfReader
@@ -17,6 +18,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Set a strong secret key for sessions
+
+@app.before_request
+def ensure_user():
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())
 
 @app.after_request
 def add_header(response):
@@ -314,8 +321,8 @@ gtts_lang_map = {
 
 @app.route('/')
 def index():
-    # Fetch translation history from MongoDB, most recent first
-    history_cursor = history_collection.find().sort('timestamp', -1)
+    # Fetch translation history for current user only
+    history_cursor = history_collection.find({'user_id': session['user_id']}).sort('timestamp', -1)
     history = list(history_cursor)
     # Add a cache-busting timestamp
     cache_v = int(time.time())
@@ -372,8 +379,9 @@ def translate():
         print(f"[DEBUG] Target language for translation: {lang_to_code}")
         print(f"[DEBUG] Translated text: {translated}")
 
-        # Save translation to MongoDB with the correct language codes and names
+        # Save translation to MongoDB with user_id
         result = history_collection.insert_one({
+            'user_id': session['user_id'],  # Associate with current user
             'source_text': text, # Always save the original user input
             'translated_text': translated,
             'source_lang': lang_from_code,
@@ -429,7 +437,8 @@ def download_history_pdf():
         pdf.cell(w=0, h=10, txt="Translation History", align='C')
         pdf.ln(h=10)
 
-        history_cursor = history_collection.find().sort('timestamp', -1)
+        # Only fetch current user's history
+        history_cursor = history_collection.find({'user_id': session['user_id']}).sort('timestamp', -1)
         entries = list(history_cursor)
 
         if not entries:
@@ -560,7 +569,7 @@ def download_translated_text():
 @app.route('/history', methods=['GET'])
 def history():
     try:
-        history_cursor = history_collection.find().sort('timestamp', -1)
+        history_cursor = history_collection.find({'user_id': session['user_id']}).sort('timestamp', -1)
         history_list = []
         for entry in history_cursor:
             history_list.append({
@@ -640,5 +649,5 @@ def speak():
         print(f"[DEBUG] Error in /speak: {str(e)}")
         return jsonify({'error': 'Speech generation failed', 'details': str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+if __name__ == '__main__':
+   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
