@@ -13,6 +13,8 @@ import hashlib
 import time
 from io import BytesIO
 from indic_transliteration.sanscript import transliterate, SCHEMES
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
