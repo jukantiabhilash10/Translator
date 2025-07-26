@@ -9,4 +9,5 @@ gTTS
 PyPDF2
 SpeechRecognition
 WeasyPrint
+gunicorn
 
