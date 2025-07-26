@@ -1,6 +1,7 @@
 
 fpdf2
 pymongo
+python-dotenv
 dnspython
 Flask
 deep-translator
