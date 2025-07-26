@@ -10,4 +10,4 @@ PyPDF2
 SpeechRecognition
 WeasyPrint
 gunicorn
-
+indic-transliteration
