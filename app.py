@@ -638,6 +638,5 @@ def speak():
         print(f"[DEBUG] Error in /speak: {str(e)}")
         return jsonify({'error': 'Speech generation failed', 'details': str(e)}), 500
 
-if __name__ == '__main__':
-    # Running with debug=True enables the debugger, but use_reloader=False prevents the OSError on Windows
-    app.run(debug=True, use_reloader=False)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
