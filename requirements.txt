@@ -1,0 +1,11 @@
+
+fpdf2
+pymongo
+dnspython
+Flask
+deep-translator
+gTTS
+PyPDF2
+SpeechRecognition
+WeasyPrint
+pyaudio
